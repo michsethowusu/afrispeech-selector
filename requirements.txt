@@ -1,0 +1,13 @@
+# torch/torchcodec are the audio encode/decode backend datasets>=4 needs for the
+# (mp3) Audio feature. The CPU index keeps installs light; GPU users can instead
+# install their own torch build first, then `pip install -r requirements.txt`.
+--extra-index-url https://download.pytorch.org/whl/cpu
+gradio>=4.44
+datasets>=2.19
+huggingface_hub>=0.23
+soundfile>=0.12
+librosa>=0.10
+pandas>=2.0
+pyarrow>=15.0
+torch>=2.4
+torchcodec>=0.2

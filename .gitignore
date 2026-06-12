@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+.pytest_cache/
+.gradio/
+afrispeech_selection*/
+*.zip
+*.parquet
+flagged/
+
+# clean_source_dataset.py working artifacts
+scripts/.clean_source_state.json
+scripts/.readme_original.md
+scripts/clean_run.log
+nohup.out

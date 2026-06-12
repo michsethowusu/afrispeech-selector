@@ -1,0 +1,143 @@
+subset	language	iso	country	clips	hours	train	val	test
+abbey_aba	Abbey	aba	CI	1776	5.03	1574	166	36
+ahanta_aha	Ahanta	aha	GH	6908	20.30	6038	441	429
+aja_ajg	Aja	ajg	BJ	1942	5.71	1765	105	72
+amharic_amh	Amharic	amh	ET	11415	33.59	10340	603	472
+atti_ati	Attié	ati	CI	482	1.40	477	5	0
+baoule_bci	Baoule	bci	CI	2657	8.08	2307	125	225
+bassa_cameroon_bas	Bassa (Cameroon)	bas	CM	16269	48.58	14981	620	668
+bassa_liberia_bsq	Bassa (Liberia)	bsq	LR	2284	6.07	2135	12	137
+bissau_guinean_creole_pov	Bissau Guinean Creole	pov	GW	6573	19.35	5899	375	299
+boulou_bum	Boulou	bum	CM	5692	16.93	5153	231	308
+changana_mozambique_tso	Changana (Mozambique)	tso	MZ	12394	35.77	11369	478	547
+chichewa_nya	Chichewa	nya	MW	3884	12.81	3407	231	246
+chitonga_malawi_tog	Chitonga (Malawi)	tog	MW	1480	4.16	1363	65	52
+chitonga_toi	Chitonga	toi	ZM	2487	6.61	2220	195	72
+chitonga_zimbabwe_toi	Chitonga (Zimbabwe)	toi	ZW	486	1.41	452	0	34
+chitumbuka_tum	Chitumbuka	tum	MW	10365	29.31	9303	623	439
+chiyao_yao	Chiyao	yao	MZ	1647	4.61	1423	103	121
+chokwe_cjk	Chokwe	cjk	AO	177	0.56	169	0	8
+chopi_cce	Chopi	cce	MZ	3789	10.80	3414	144	231
+chuabo_chw	Chuabo	chw	MZ	390	1.03	373	0	17
+cibemba_bem	Cibemba	bem	ZM	3823	10.56	3333	170	320
+cinamwanga_mwn	Cinamwanga	mwn	ZM	553	1.66	500	53	0
+cinyanja_nya	Cinyanja	nya	MW	1883	5.79	1765	42	76
+dagaare_dga	Dagaare	dga	GH	7477	21.53	6575	375	527
+damara_naq	Damara	naq	NA	789	2.46	698	62	29
+dangme_ada	Dangme	ada	GH	1177	3.37	941	154	82
+dinka_din	Dinka	din	SS	2496	6.84	2178	99	219
+douala_dua	Douala	dua	CM	6521	20.12	5832	145	544
+edo_bin	Edo	bin	NG	9028	26.04	8323	346	359
+esan_ish	Esan	ish	NG	8499	24.19	7356	708	435
+ewe_ewe	Ewe	ewe	GH	9760	29.41	8633	611	516
+ewondo_ewo	Ewondo	ewo	CM	1305	3.71	1134	32	139
+fang_fan	Fang	fan	GQ	3969	11.68	3630	184	155
+fante_fat	Fante	fat	GH	7631	22.04	6942	277	412
+fon_fon	Fon	fon	BJ	10912	33.19	10039	459	414
+frafra_gur	Frafra	gur	GH	7960	23.82	7140	398	422
+ga_gaa	Ga	gaa	GH	11939	35.12	10703	632	604
+gitonga_toh	Gitonga	toh	MZ	1319	3.60	1228	4	87
+gokana_gkn	Gokana	gkn	NG	2808	7.98	2567	179	62
+gu_r_gxx	Guéré	gxx	CI	1057	3.01	953	67	37
+gun_guw	Gun	guw	BJ	13340	39.98	12157	494	689
+hausa_hau	Hausa	hau	NG	9367	28.37	8364	509	494
+havu_hav	Havu	hav	CD	2619	7.59	2447	172	0
+herero_her	Herero	her	NA	192	0.61	192	0	0
+ibinda_yom	Ibinda	yom	CD	2672	7.46	2508	59	105
+igbo_ibo	Igbo	ibo	NG	12639	38.07	11379	556	704
+ijaw_ijc	Ijaw	ijc	NG	312	0.88	292	0	20
+isoko_iso	Isoko	iso	NG	9474	26.84	8544	447	483
+itsekiri_its	Itsekiri	its	NG	2387	6.78	2387	0	0
+jula_dyu	Jula	dyu	BF	5486	15.85	5019	258	209
+kabiye_kbp	Kabiye	kbp	TG	18211	53.19	16328	825	1058
+kabuverdianu_kea	Kabuverdianu	kea	CV	19728	58.07	18156	699	873
+kabyle_kab	Kabyle	kab	DZ	1188	3.65	1068	64	56
+kamba_kam	Kamba	kam	KE	9567	28.86	8603	348	616
+kanyok_kny	Kanyok	kny	CD	109	0.28	109	0	0
+khana_ogo	Khana	ogo	NG	1256	3.62	921	139	196
+kikongo_kwy	Kikongo	kwy	AO	1769	4.87	1623	103	43
+kikongo_ya_leta_ktu	Kikongo ya Leta	ktu	CD	4754	13.81	4232	262	260
+kikuyu_kik	Kikuyu	kik	KE	9640	28.82	8808	413	419
+kiluba_lub	Kiluba	lub	CD	12949	38.31	11553	679	717
+kimbundu_kmb	Kimbundu	kmb	AO	2894	8.32	2468	249	177
+kinande_nnb	Kinande	nnb	CD	2871	8.15	2637	44	190
+kinyarwanda_kin	Kinyarwanda	kin	RW	12012	35.57	10517	606	889
+kirundi_run	Kirundi	run	BI	12399	35.62	11116	550	733
+kisi_kss	Kisi	kss	LR	7739	20.99	6967	377	395
+kisonge_sop	Kisonge	sop	CD	141	0.40	141	0	0
+kituba_ktu	Kituba	ktu	CD	3935	11.24	3639	195	101
+kongo_kon	Kongo	kon	CD	9980	27.82	8828	474	678
+kpelle_xpe	Kpelle	xpe	LR	1933	5.70	1743	112	78
+krio_kri	Krio	kri	SL	9230	26.16	8293	553	384
+kwangali_kwn	Kwangali	kwn	NA	2258	6.75	2139	81	38
+kwanyama_kua	Kwanyama	kua	NA	6107	16.66	5467	239	401
+lari_ldi	Lari	ldi	CG	1359	3.85	1284	42	33
+lenje_leh	Lenje	leh	ZM	8099	22.52	7198	412	489
+liberian_english_lir	Liberian English	lir	LR	7733	22.06	7112	335	286
+lingala_lin	Lingala	lin	CD	10080	30.71	9076	414	590
+loma_lom	Loma	lom	LR	1540	4.52	1350	41	149
+lomwe_ngl	Lomwe	ngl	MZ	378	1.07	373	5	0
+luganda_lug	Luganda	lug	UG	3617	11.25	3237	75	305
+lunda_lun	Lunda	lun	ZM	423	1.11	322	101	0
+luo_luo	Luo	luo	KE	6829	19.66	5959	367	503
+luvale_lue	Luvale	lue	ZM	20	0.07	20	0	0
+macua_vmw	Macua	vmw	MZ	10144	28.02	8966	682	496
+makhuwa_marrevone_xmc	Makhuwa-Marrevone	xmc	MZ	704	1.87	635	41	28
+makhuwa_meetto_mgh	Makhuwa-Meetto	mgh	MZ	671	1.83	552	85	34
+makhuwa_shirima_vmk	Makhuwa-Shirima	vmk	MZ	277	0.77	277	0	0
+malagasy_mlg	Malagasy	mlg	MG	20287	61.32	18900	746	641
+mambwe_lungu_mgr	Mambwe-Lungu	mgr	ZM	331	0.93	264	34	33
+manyawa_mny	Manyawa	mny	MZ	697	1.94	697	0	0
+mashi_shr	Mashi	shr	CD	4263	12.41	3855	273	135
+mauritian_creole_mfe	Mauritian Creole	mfe	MU	15088	43.57	13115	822	1151
+meru_mer	Meru	mer	KE	1277	3.83	1139	138	0
+moore_mos	Moore	mos	BF	6785	20.51	6293	196	296
+ndau_ndc	Ndau	ndc	MZ	1231	3.34	1147	68	16
+ndau_western_ndc	Ndau (Western)	ndc	MZ	3621	10.22	3235	239	147
+ndebele_nbl	Ndebele	nbl	ZA	1985	5.15	1819	134	32
+ndebele_zimbabwe_nde	Ndebele (Zimbabwe)	nde	ZW	2552	7.62	2308	81	163
+ndonga_ndo	Ndonga	ndo	NA	1920	5.77	1745	63	112
+ngangela_nba	Ngangela	nba	AO	3638	10.28	3348	166	124
+ngbandi_northern_ngb	Ngbandi (Northern)	ngb	CD	255	0.78	222	33	0
+nsenga_mozambique_nse	Nsenga (Mozambique)	nse	MZ	2865	8.09	2385	313	167
+nyaneka_nyk	Nyaneka	nyk	AO	14731	42.94	13430	858	443
+nyungwe_nyu	Nyungwe	nyu	MZ	2976	8.35	2744	63	169
+nzema_nzi	Nzema	nzi	GH	7319	21.14	6413	532	374
+oromo_orm	Oromo	orm	ET	8933	25.66	7778	557	598
+otetela_tll	Otetela	tll	CD	11301	31.53	10316	463	522
+phimbi_phm	Phimbi	phm	MZ	3561	10.00	3172	121	268
+pidgin_west_africa_wes	Pidgin (West Africa)	wes	CM	7405	21.09	6785	227	393
+r_union_creole_rcf	Réunion Creole	rcf	RE	1803	5.25	1718	23	62
+ronga_rng	Ronga	rng	MZ	10285	29.11	9138	642	505
+runyankore_nyn	Runyankore	nyn	UG	5605	17.10	4736	432	437
+sango_sag	Sango	sag	CF	4193	12.60	3645	261	287
+sehwi_sfw	Sehwi	sfw	GH	6024	17.48	5488	199	337
+sena_seh	Sena	seh	MZ	7849	22.84	7019	341	489
+sepedi_nso	Sepedi	nso	ZA	7016	19.59	6435	396	185
+sesotho_lesotho_sot	Sesotho (Lesotho)	sot	ZA	7944	22.76	7052	390	502
+sesotho_south_africa_sot	Sesotho (South Africa)	sot	ZA	8149	23.32	7583	332	234
+setswana_tsn	Setswana	tsn	ZA	4828	13.84	4232	344	252
+seychelles_creole_crs	Seychelles Creole	crs	SC	4269	12.16	3983	72	214
+shona_sna	Shona	sna	ZW	17996	53.30	15954	1161	881
+swahili_congo_swc	Swahili (Congo)	swc	CD	6493	18.67	5670	503	320
+swahili_katanga_swc	Swahili (Katanga)	swc	CD	866	2.40	798	32	36
+swahili_swa	Swahili	swa	TZ	13101	38.73	11781	703	617
+swati_ssw	Swati	ssw	ZA	3236	9.42	2767	170	299
+taabwa_tap	Taabwa	tap	CD	195	0.56	163	0	32
+tewe_twx	Tewe	twx	MZ	1251	3.39	1076	148	27
+tiv_tiv	Tiv	tiv	NG	1374	4.03	1220	119	35
+toupouri_tui	Toupouri	tui	CM	3070	8.96	2588	292	190
+tshiluba_lua	Tshiluba	lua	CD	3532	11.24	3234	158	140
+tshwa_tsc	Tshwa	tsc	MZ	5221	14.99	4651	209	361
+tsonga_tso	Tsonga	tso	ZA	11838	35.25	10710	682	446
+twi_twi	Twi	twi	GH	17140	50.32	15794	828	518
+umbundu_umb	Umbundu	umb	AO	1630	4.70	1340	227	63
+urhobo_urh	Urhobo	urh	NG	8944	25.67	7946	447	551
+venda_ven	Venda	ven	ZA	2990	8.65	2721	135	134
+wolaita_wal	Wolaita	wal	ET	1476	4.28	1250	133	93
+wolof_wol	Wolof	wol	SN	846	2.50	803	10	33
+xhosa_xho	Xhosa	xho	ZA	11485	33.15	10073	658	754
+yacouba_daf	Yacouba	daf	CI	787	2.26	656	0	131
+yombe_yom	Yombe	yom	CD	1634	4.88	1390	149	95
+yoruba_yor	Yoruba	yor	NG	4960	14.19	4504	216	240
+zulu_zul	Zulu	zul	ZA	12434	36.98	11540	571	323
