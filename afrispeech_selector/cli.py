@@ -79,11 +79,18 @@ def build_parser() -> argparse.ArgumentParser:
     siz.add_argument("--max-clip-sec", type=float, help="drop clips longer than this many seconds")
     siz.add_argument("--seed", type=int, default=42)
 
-    out = p.add_argument_group("output")
+    fmt = p.add_argument_group("training format")
+    fmt.add_argument("--target-sr", type=int, metavar="HZ",
+                     help="resample audio to this sampling rate (e.g. 16000 for most ASR models)")
+    fmt.add_argument("--schema", choices=["default", "asr", "whisper", "common_voice"],
+                     default="default", help="reshape columns for a training framework")
+
+    out = p.add_argument_group("output (creates a local/remote copy — prefer --recipe for training)")
     out.add_argument("--out", default="afrispeech_selection",
                      help="output directory / base name (default: afrispeech_selection)")
     out.add_argument("--format", default="disk",
-                     help="comma list of: disk,zip,parquet,csv (default: disk)")
+                     help="comma list: HF (disk,zip,parquet,csv) and/or TTS "
+                          "(ljspeech,piper,vits,melo). Default: disk")
     out.add_argument("--push", metavar="REPO_ID", help="push to this HF dataset repo (user/name)")
     out.add_argument("--private", dest="private", action="store_true", default=True)
     out.add_argument("--public", dest="private", action="store_false")
@@ -95,10 +102,42 @@ def build_parser() -> argparse.ArgumentParser:
     misc.add_argument("--no-streaming", dest="streaming", action="store_false")
     misc.add_argument("--allow-full", action="store_true",
                       help="permit an uncapped pull (downloads whole shards, ~65 GB)")
+    misc.add_argument("--recipe", action="store_true",
+                      help="print a Python snippet that streams this selection into training (no copy) and exit")
     misc.add_argument("--dry-run", action="store_true", help="print the selection plan and exit")
     misc.add_argument("--list-langs", action="store_true",
                       help="list available languages (honours the selection filters) and exit")
     return p
+
+
+def _recipe(chosen, args, secs) -> str:
+    subs = [e.subset for e in chosen]
+    kw = [f"    split={args.split!r}"]
+    if args.per_language:
+        kw.append(f"    per_language={args.per_language}")
+    if secs:
+        kw.append(f"    max_seconds={secs}")
+    if args.min_clip_sec:
+        kw.append(f"    min_clip_seconds={args.min_clip_sec}")
+    if args.max_clip_sec:
+        kw.append(f"    max_clip_seconds={args.max_clip_sec}")
+    if args.target_sr:
+        kw.append(f"    target_sampling_rate={args.target_sr}")
+    if args.schema and args.schema != "default":
+        kw.append(f"    schema={args.schema!r}")
+    kwargs = ",\n".join(kw)
+    return (
+        "from afrispeech_selector import stream_dataset\n\n"
+        "# Streams the selection straight into training — no local copy of the dataset.\n"
+        "ds = stream_dataset(\n"
+        f"    {subs!r},\n"
+        f"{kwargs},\n"
+        ")\n\n"
+        "# `ds` is a datasets.IterableDataset — feed it directly to your trainer:\n"
+        "for batch in ds.iter(batch_size=8):\n"
+        "    audio, text = batch['audio'], batch['text']\n"
+        "    ...  # your forward / loss step\n"
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -160,6 +199,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         return 0
 
+    if args.recipe:
+        print(_recipe(chosen, args, secs))
+        return 0
+
     # ---- guard against an accidental 65 GB pull --------------------------- #
     if cap is None and secs is None and not args.allow_full:
         sys.exit("No per-language limit set — that pulls whole shards (~65 GB). "
@@ -174,9 +217,15 @@ def main(argv: list[str] | None = None) -> int:
     def _progress(msg):
         print(f"  {msg}", file=sys.stderr, flush=True)
 
+    fmts = {f.strip() for f in args.format.split(",") if f.strip()}
+    tts_fmts = [f for f in fmts if f in _export.TTS_FORMATS]
+    hf_fmts = [f for f in fmts if f not in _export.TTS_FORMATS]
+    # Resample for HF outputs / schema only; TTS exporters resample themselves.
     ds = build_dataset(
         [e.subset for e in chosen], split=args.split, per_language=cap, max_seconds=secs,
         min_clip_seconds=args.min_clip_sec, max_clip_seconds=args.max_clip_sec,
+        target_sampling_rate=args.target_sr if hf_fmts else None,
+        schema=args.schema if hf_fmts else "default",
         seed=args.seed, token=args.token, streaming=use_streaming, progress=_progress,
     )
 
@@ -185,7 +234,6 @@ def main(argv: list[str] | None = None) -> int:
     out_dir = os.path.dirname(out_path) or "."
     base = os.path.basename(out_path) or "afrispeech_selection"
 
-    fmts = {f.strip() for f in args.format.split(",") if f.strip()}
     written = []
     if "disk" in fmts:
         ds.save_to_disk(out_path)
@@ -196,6 +244,10 @@ def main(argv: list[str] | None = None) -> int:
         written.append(_export.export_parquet(ds, out_dir=out_dir, name=base))
     if "csv" in fmts:
         written.append(_export.export_metadata_csv(ds, out_dir=out_dir, name=base))
+    tts_sr = args.target_sr or 22050
+    for t in tts_fmts:
+        written.append(_export.export_tts(ds, out_dir=out_dir, name=base, fmt=t,
+                                          sampling_rate=tts_sr) + f"/  ({t} @ {tts_sr}Hz)")
 
     print(f"\n✅ Built {len(ds)} clips, {len(chosen)} languages. "
           f"Columns: {', '.join(ds.column_names)}", file=sys.stderr)

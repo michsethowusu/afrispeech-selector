@@ -311,6 +311,8 @@ def build_dataset(
     max_seconds: float | None = None,
     min_clip_seconds: float | None = None,
     max_clip_seconds: float | None = None,
+    target_sampling_rate: int | None = None,
+    schema: str | None = None,
     seed: int = 42,
     dataset_id: str = DATASET_ID,
     token: str | None = None,
@@ -319,12 +321,16 @@ def build_dataset(
 ):
     """Build a single combined :class:`datasets.Dataset` for the selection.
 
+    Materialises the selection in memory (use this when you genuinely need a
+    local copy — e.g. an offline working set). For training, prefer
+    :func:`stream_dataset`, which streams lazily and never writes a copy.
+
     ``entries`` may be :class:`LanguageEntry` objects or subset-name strings.
     ``per_language`` caps clips per language; ``max_seconds`` caps total audio
     duration per language (whichever is hit first). ``min_clip_seconds`` /
     ``max_clip_seconds`` drop individual clips outside that length range before
-    counting. ``streaming`` pulls only what's needed without downloading whole
-    shards.
+    counting. ``target_sampling_rate`` resamples audio; ``schema`` reshapes
+    columns for a training framework (see :func:`apply_schema`).
     """
     from datasets import concatenate_datasets
 
@@ -346,6 +352,7 @@ def build_dataset(
     if not parts:
         raise ValueError("No languages selected — nothing to build.")
     combined = concatenate_datasets(parts) if len(parts) > 1 else parts[0]
+    combined = apply_schema(combined, target_sampling_rate, schema)
     if progress:
         progress(f"Done: {len(combined)} clips across {len(parts)} languages.")
     return combined
@@ -355,3 +362,134 @@ def _require(entry: LanguageEntry | None, name: str) -> LanguageEntry:
     if entry is None:
         raise KeyError(f"Unknown subset '{name}'.")
     return entry
+
+
+# Column shapes expected by common training pipelines.
+SCHEMAS = {
+    None: None,                                   # standard schema, unchanged
+    "default": None,
+    "asr": (None, ["audio", "text"]),             # minimal: just audio + transcript
+    "whisper": ({"text": "sentence"}, ["audio", "sentence"]),
+    "common_voice": ({"text": "sentence"}, ["audio", "sentence", "language", "country", "length"]),
+}
+
+
+def apply_schema(ds, target_sampling_rate: int | None = None, schema: str | None = None):
+    """Resample audio and/or reshape columns for a training framework.
+
+    Works on both :class:`datasets.Dataset` and :class:`datasets.IterableDataset`.
+    ``schema`` is one of :data:`SCHEMAS`: ``asr`` (audio+text), ``whisper`` /
+    ``common_voice`` (text→sentence), or ``None``/``default`` (unchanged).
+    """
+    from datasets import Audio
+
+    if target_sampling_rate:
+        ds = ds.cast_column("audio", Audio(sampling_rate=target_sampling_rate))
+    if schema not in SCHEMAS:
+        raise ValueError(f"Unknown schema '{schema}'. Options: {sorted(k for k in SCHEMAS if k)}")
+    spec = SCHEMAS.get(schema)
+    if spec:
+        rename, keep = spec
+        if rename:
+            for old, new in rename.items():
+                if old in ds.column_names:
+                    ds = ds.rename_column(old, new)
+        ds = ds.select_columns([c for c in keep if c in ds.column_names])
+    return ds
+
+
+def _iter_rows(subsets, split, per_language, max_seconds,
+               min_clip_seconds, max_clip_seconds, seed, dataset_id, token):
+    """Generator yielding standardised rows (audio undecoded) for a selection.
+
+    Lazily streams each subset and applies the per-language caps and per-clip
+    length filter. Used by :func:`stream_dataset` to feed a training loop without
+    materialising or saving any copy of the data.
+    """
+    from datasets import Audio, load_dataset
+
+    split_alias = {"val": "validation"}
+    splits = ("train", "validation", "test") if split == "all" else (split,)
+    for sub in subsets:
+        entry = by_subset(sub)
+        if entry is None:
+            continue
+        avg = (entry.hours * 3600 / entry.clips) if entry.clips else 1.0
+        est = per_language or (int(max_seconds / avg) + 1 if max_seconds else 0)
+        buffer = max(1000, min(10000, est * 4)) if est else 1000
+        count, acc, stop = 0, 0.0, False
+        for sp in splits:
+            ds = load_dataset(dataset_id, sub, split=split_alias.get(sp, sp),
+                              streaming=True, token=token)
+            if per_language is not None or max_seconds is not None:
+                ds = ds.shuffle(seed=seed, buffer_size=buffer)
+            ds = ds.cast_column("audio", Audio(decode=False))
+            cols = list(ds.features) if ds.features else []
+            text_col = _pick_text_column(cols)
+            dur_col = _pick_duration_column(cols)
+            for ex in ds:
+                if per_language is not None and count >= per_language:
+                    stop = True
+                    break
+                if max_seconds is not None and acc >= max_seconds:
+                    stop = True
+                    break
+                audio = ex.get("audio")
+                length = float(ex[dur_col]) if dur_col and ex.get(dur_col) is not None else _audio_len(audio)
+                if min_clip_seconds is not None and length < min_clip_seconds:
+                    continue
+                if max_clip_seconds is not None and length > max_clip_seconds:
+                    continue
+                yield {
+                    "audio": audio,
+                    "text": ex.get(text_col, "") if text_col else "",
+                    "language": entry.language, "country": entry.country,
+                    "length": length, "iso": entry.iso, "subset": entry.subset,
+                }
+                count += 1
+                acc += length
+            if stop:
+                break
+
+
+def stream_dataset(
+    entries,
+    *,
+    split: str = "train",
+    per_language: int | None = None,
+    max_seconds: float | None = None,
+    min_clip_seconds: float | None = None,
+    max_clip_seconds: float | None = None,
+    target_sampling_rate: int | None = None,
+    schema: str | None = None,
+    seed: int = 42,
+    dataset_id: str = DATASET_ID,
+    token: str | None = None,
+):
+    """Stream a selection straight into training as a lazy ``IterableDataset``.
+
+    This is the recommended path: it pulls samples on the fly and **never writes
+    a local copy** of the dataset — you select languages and feed the result
+    directly to your trainer. Same selection knobs as :func:`build_dataset`
+    (caps, duration budget, length window), plus ``target_sampling_rate`` and
+    ``schema`` to match your training framework. Returns a
+    :class:`datasets.IterableDataset` with the standard schema (or the reshaped
+    one). The duration budget may overshoot by at most one clip in this mode.
+    """
+    from datasets import Audio, Features, IterableDataset, Value
+
+    subsets = [e.subset if isinstance(e, LanguageEntry) else e for e in entries]
+    feats = Features({
+        "audio": Audio(), "text": Value("string"), "language": Value("string"),
+        "country": Value("string"), "length": Value("float64"),
+        "iso": Value("string"), "subset": Value("string"),
+    })
+    ds = IterableDataset.from_generator(
+        _iter_rows, features=feats,
+        gen_kwargs=dict(
+            subsets=subsets, split=split, per_language=per_language, max_seconds=max_seconds,
+            min_clip_seconds=min_clip_seconds, max_clip_seconds=max_clip_seconds,
+            seed=seed, dataset_id=dataset_id, token=token,
+        ),
+    )
+    return apply_schema(ds, target_sampling_rate, schema)

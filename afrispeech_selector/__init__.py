@@ -14,11 +14,20 @@ from .catalog import (
     load_catalog,
 )
 from .selector import filter_catalog, plan_samples, select_top
-from .builder import STANDARD_COLUMNS, build_dataset, build_subset
+from .builder import (
+    SCHEMAS,
+    STANDARD_COLUMNS,
+    apply_schema,
+    build_dataset,
+    build_subset,
+    stream_dataset,
+)
 from .export import (
+    TTS_FORMATS,
     export_archive,
     export_metadata_csv,
     export_parquet,
+    export_tts,
     push_to_hub,
 )
 
@@ -33,11 +42,16 @@ __all__ = [
     "plan_samples",
     "select_top",
     "STANDARD_COLUMNS",
+    "SCHEMAS",
+    "apply_schema",
     "build_dataset",
     "build_subset",
+    "stream_dataset",
+    "TTS_FORMATS",
     "export_archive",
     "export_metadata_csv",
     "export_parquet",
+    "export_tts",
     "push_to_hub",
 ]
 

@@ -1,29 +1,21 @@
-# 🌍 AfriSpeech Selector
+# AfriSpeech Selector
 
-Build training sets from
+Select African languages from
 [`AfriSpeech/african-speech-public_v1`](https://huggingface.co/datasets/AfriSpeech/african-speech-public_v1)
-from your terminal. Rank African languages by recorded **hours** (strength),
-pick a country-balanced top-N (or hand-pick specific languages), size the sample,
-and export locally or push to your own Hugging Face dataset repo — in a fixed,
-training-ready schema.
+by recorded **hours** (strength) — a country-balanced top-N or a hand-picked set,
+sized the way you want — and feed them **straight into training**.
 
-It's a **CLI**: the heavy audio download runs in your terminal, so it's robust,
-resumable, scriptable, and pipes straight into a training script. An optional
-local browser UI helps you *explore and build the command* — but the CLI does
-the work.
+The point isn't to mint copies of the dataset; it's to put the right slice in
+front of your trainer:
 
-## ▶️ Run in the cloud (no local setup)
+- **ASR / 🤗 training** — `stream_dataset(...)` pipes the selection in lazily as an
+  `IterableDataset`. **No local copy** is written.
+- **TTS data-prep** — export a local training set in the layout your framework
+  expects: **LJSpeech, Piper, VITS, or MeloTTS** (WAVs + manifest).
 
-Open the example notebook and generate data on a free Colab/Kaggle runtime — the
-**default CPU runtime is enough** (building a dataset is download/IO, not compute;
-no GPU needed):
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/AfriSpeech/afrispeech-selector/blob/main/notebooks/afrispeech_selector.ipynb)
-[![Open in Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://kaggle.com/kernels/welcome?src=https://github.com/AfriSpeech/afrispeech-selector/blob/main/notebooks/afrispeech_selector.ipynb)
-
-It installs the tool, previews a selection, builds the dataset, and (optionally)
-pushes it to your HF repo. On Kaggle, enable **Internet** in the notebook
-settings. See [`notebooks/afrispeech_selector.ipynb`](notebooks/afrispeech_selector.ipynb).
+> **License:** the audio belongs to the source dataset. Building a *local* working
+> set for your own training is fine; redistributing copies (e.g. `--push` to a
+> public repo) is your responsibility — check the source license first.
 
 ## Available languages
 
@@ -201,25 +193,69 @@ pip install -e .            # gives you the `afrispeech-select` command
 
 (Use `python3` — the code uses non-ASCII text and won't run under Python 2.)
 
-## CLI usage
+## Stream into training (recommended — no copy)
+
+For ASR / 🤗 pipelines, pipe the selection straight into your trainer. Nothing is
+written to disk; samples stream on the fly:
+
+```python
+from afrispeech_selector import filter_catalog, select_top, stream_dataset
+
+pool  = filter_catalog(min_hours=10, split="train")
+langs = select_top(pool, 10, proportional=True, max_per_country=2)
+
+ds = stream_dataset(
+    langs, split="train",
+    per_language=200,          # or max_seconds=1800 for a 30-min/lang budget
+    min_clip_seconds=3, max_clip_seconds=20,
+    target_sampling_rate=16000,   # resample for your model
+    schema="asr",                 # "asr" | "whisper" | "common_voice" | default
+)
+# ds is a datasets.IterableDataset — feed it directly to your Trainer / DataLoader
+for batch in ds.iter(batch_size=8):
+    ...
+```
+
+The CLI can hand you that snippet for any selection — preview, then generate the recipe:
 
 ```bash
-# Preview the top 10 country-balanced languages — no download
 afrispeech-select --top 10 --max-per-country 2 --per-language 200 --dry-run
+afrispeech-select --top 10 --max-per-country 2 --per-language 200 \
+    --target-sr 16000 --schema asr --recipe
+```
 
-# Build it: 200 clips/language → ./data (HF load_from_disk format)
-afrispeech-select --top 10 --max-per-country 2 --per-language 200 --out ./data
+## Export for TTS frameworks (local training set)
 
-# 30 min/language, only 3–20s clips, also write a parquet file
-afrispeech-select --top 10 --max-hours-per-lang 0.5 \
-    --min-clip-sec 3 --max-clip-sec 20 --out ./data --format disk,parquet
+TTS data-prep reads WAVs + a manifest from disk. Export the selection in the
+layout your framework expects (`--format`): `ljspeech` (generic / Coqui),
+`piper`, `vits`, or `melo`. Audio is written as 16-bit mono WAV at `--target-sr`
+(default 22050).
 
-# Hand-pick languages and push to your HF repo
-afrispeech-select --languages twi_twi,hausa_hau --per-language 500 \
-    --push you/my-subset --token "$HF_TOKEN"
+```bash
+# LJSpeech-style (wavs/ + metadata.csv: id|text|text)
+afrispeech-select --top 10 --max-per-country 2 --per-language 200 \
+    --out ./tts_data --format ljspeech --target-sr 22050
 
-# See every available language/subset
-afrispeech-select --list-langs
+# Piper (metadata.csv: id|speaker|text) — speaker = language, multilingual-ready
+afrispeech-select --languages twi_twi,ewe_ewe --per-language 500 \
+    --out ./piper_data --format piper
+
+# VITS (filelist.txt: wavs/<id>.wav|<sid>|text + speakers.txt)
+# MeloTTS (metadata.list: wavs/<id>.wav|speaker|LANG|text)
+afrispeech-select --top 8 --per-language 300 --out ./melo_data --format vits,melo
+```
+
+Each writes `<out>/wavs/*.wav` plus the manifest. Speaker = language label and
+language code = ISO 639-3 — natural for multilingual TTS.
+
+## Other CLI examples
+
+```bash
+# Filter the menu before committing
+afrispeech-select --list-langs --min-hours 20 --countries GH,NG
+
+# An HF working copy on disk (load_from_disk / parquet)
+afrispeech-select --top 10 --per-language 200 --out ./data --format disk,parquet
 ```
 
 No install? `python3 -m afrispeech_selector …` works the same from the repo.
@@ -238,10 +274,13 @@ No install? `python3 -m afrispeech_selector …` works the same from the repo.
 | `--max-hours-per-lang H` | duration budget per language (decimals OK, e.g. `0.5`) |
 | `--min-clip-sec / --max-clip-sec` | per-sample length window (out-of-range clips skipped while picking) |
 | `--split train\|val\|test\|all` | which split to draw from |
+| `--target-sr HZ` | resample audio (e.g. `16000` for ASR, `22050` for TTS) |
+| `--schema asr\|whisper\|common_voice` | reshape columns for a training framework |
+| `--recipe` | print a `stream_dataset(...)` snippet for this selection (no copy) |
 | `--out PATH` | output directory / base name |
-| `--format disk,zip,parquet,csv` | one or more output formats |
-| `--push REPO_ID [--public] [--token …]` | push to an HF dataset repo |
-| `--dry-run` | print the plan and stop |
+| `--format …` | HF: `disk,zip,parquet,csv` · TTS: `ljspeech,piper,vits,melo` |
+| `--push REPO_ID [--public] [--token …]` | push to an HF dataset repo (creates a copy) |
+| `--dry-run` / `--list-langs` | preview the plan / list matching languages |
 
 Capped pulls **stream** from the Hub and only transfer the samples you ask for.
 An uncapped "full build" downloads whole shards (the dataset is ~65 GB) and must
@@ -280,12 +319,17 @@ python app.py              # opens http://127.0.0.1:7860
 ## Use as a library
 
 ```python
-from afrispeech_selector import filter_catalog, select_top, build_dataset
+from afrispeech_selector import filter_catalog, select_top, stream_dataset, build_dataset, export_tts
 
 pool  = filter_catalog(min_hours=10, split="train")
 langs = select_top(pool, 10, proportional=True, max_per_country=2)
-ds = build_dataset(langs, split="train", max_seconds=1800,
-                   min_clip_seconds=3, max_clip_seconds=20, streaming=True)
+
+# (a) Stream into training — no copy (recommended)
+ds = stream_dataset(langs, split="train", per_language=200, target_sampling_rate=16000)
+
+# (b) Materialise a local working set, then export for a TTS framework
+copy = build_dataset(langs, split="train", per_language=200, streaming=True)
+export_tts(copy, out_dir="./tts_data", fmt="ljspeech", sampling_rate=22050)
 ```
 
 ## Tests
@@ -311,8 +355,8 @@ afrispeech_selector/
   cli.py        the `afrispeech-select` command (workhorse)
   catalog.py    load the language table; country names
   selector.py   ranking, filtering, country-proportional top-N, plan
-  builder.py    pull subsets from the Hub → standard schema (streaming)
-  export.py     zip / parquet / manifest / push_to_hub
+  builder.py    pull subsets → standard schema; stream_dataset (no copy) + apply_schema
+  export.py     HF (zip/parquet/manifest/push) + TTS (ljspeech/piper/vits/melo)
 app.py          optional selection UI (emits the CLI command)
 data/catalog.tsv  strength table (hours, clips, splits per subset)
 scripts/        refresh_catalog.py, clean_source_dataset.py
