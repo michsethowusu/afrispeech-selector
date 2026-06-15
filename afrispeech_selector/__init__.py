@@ -1,4 +1,4 @@
-"""AfriSpeech Selector — pick languages from AfriSpeech/african-speech-public_v1.
+"""AfriSpeech Selector — pick African languages and prepare training-ready data.
 
 Strength is measured by recorded hours. The library lets you rank and filter
 languages, select a country-balanced top-N, pull a capped sample per language

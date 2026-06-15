@@ -65,6 +65,7 @@ def build_subset(
     dataset_id: str = DATASET_ID,
     token: str | None = None,
     streaming: bool = False,
+    on_clip=None,
 ):
     """Load one subset, cap it, and reshape to the standard schema.
 
@@ -91,7 +92,7 @@ def build_subset(
         return _build_subset_streaming(
             entry, split=split, per_language=per_language, max_seconds=max_seconds,
             min_clip_seconds=min_clip_seconds, max_clip_seconds=max_clip_seconds,
-            seed=seed, dataset_id=dataset_id, token=token,
+            seed=seed, dataset_id=dataset_id, token=token, on_clip=on_clip,
         )
 
     from datasets import Audio, concatenate_datasets, load_dataset
@@ -199,6 +200,7 @@ def _build_subset_streaming(
     seed: int,
     dataset_id: str,
     token: str | None,
+    on_clip=None,
 ):
     """Stream a subset and pull only what's needed (no full download).
 
@@ -257,6 +259,8 @@ def _build_subset_streaming(
                 "subset": entry.subset,
             })
             acc += length
+            if on_clip:
+                on_clip()
         if stop:
             break
 
@@ -318,6 +322,7 @@ def build_dataset(
     token: str | None = None,
     streaming: bool = False,
     progress: Callable[[str], None] | None = None,
+    on_clip=None,
 ):
     """Build a single combined :class:`datasets.Dataset` for the selection.
 
@@ -347,6 +352,7 @@ def build_dataset(
                 entry, split=split, per_language=per_language, max_seconds=max_seconds,
                 min_clip_seconds=min_clip_seconds, max_clip_seconds=max_clip_seconds,
                 seed=seed, dataset_id=dataset_id, token=token, streaming=streaming,
+                on_clip=on_clip,
             )
         )
     if not parts:

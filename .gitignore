@@ -16,3 +16,6 @@ scripts/.clean_source_state.json
 scripts/.readme_original.md
 scripts/clean_run.log
 nohup.out
+
+# downloaded datasets (default --out location)
+/data/

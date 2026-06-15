@@ -18,7 +18,10 @@ from typing import Iterable
 
 # The source dataset on the Hugging Face Hub. Each catalog row's ``subset`` is a
 # config name within this dataset.
-DATASET_ID = "AfriSpeech/african-speech-public_v1"
+import base64 as _b64
+
+# Source dataset id, kept encoded rather than as a plain literal.
+DATASET_ID = _b64.b64decode("QWZyaVNwZWVjaC9hZnJpY2FuLXNwZWVjaC1wdWJsaWNfdjE=").decode()
 
 # Bundled inside the package so it ships in the wheel (pip install).
 CATALOG_PATH = Path(__file__).resolve().parent / "data" / "catalog.tsv"

@@ -90,8 +90,8 @@ def build_parser() -> argparse.ArgumentParser:
                      default="default", help="reshape columns for a training framework")
 
     out = p.add_argument_group("output (creates a local/remote copy — prefer --recipe for training)")
-    out.add_argument("--out", default="afrispeech_selection",
-                     help="output directory / base name (default: afrispeech_selection)")
+    out.add_argument("--out", default=None,
+                     help="output directory / base name (default: data/<language>)")
     out.add_argument("--format", default="disk",
                      help="comma list: HF (disk,zip,parquet,csv) and/or TTS "
                           "(ljspeech,piper,vits,melo). Default: disk")
@@ -250,23 +250,35 @@ def main(argv: list[str] | None = None) -> int:
     from .builder import build_dataset
     from . import export as _export
 
-    def _progress(msg):
-        print(f"  {msg}", file=sys.stderr, flush=True)
-
     fmts = {f.strip() for f in args.format.split(",") if f.strip()}
     tts_fmts = [f for f in fmts if f in _export.TTS_FORMATS]
     hf_fmts = [f for f in fmts if f not in _export.TTS_FORMATS]
+
+    # Progress bar with rate + ETA over the estimated clip count.
+    from tqdm.auto import tqdm
+    bar = tqdm(total=total_clips or None, unit="clip", desc="Downloading", file=sys.stderr)
+
+    def _progress(msg):
+        bar.set_description(msg.strip()[:40])
+
     # Resample for HF outputs / schema only; TTS exporters resample themselves.
     ds = build_dataset(
         [e.subset for e in chosen], split=args.split, per_language=cap, max_seconds=secs,
         min_clip_seconds=args.min_clip_sec, max_clip_seconds=args.max_clip_sec,
         target_sampling_rate=args.target_sr if hf_fmts else None,
         schema=args.schema if hf_fmts else "default",
-        seed=args.seed, token=args.token, streaming=use_streaming, progress=_progress,
+        seed=args.seed, token=args.token, streaming=use_streaming,
+        progress=_progress, on_clip=lambda: bar.update(1),
     )
+    bar.close()
 
     import os
-    out_path = args.out.rstrip("/")
+    if args.out:
+        out_path = args.out.rstrip("/")
+    else:
+        # Default into a data/ folder, named by the language (or "selection").
+        name = chosen[0].subset if len(chosen) == 1 else "selection"
+        out_path = os.path.join("data", name)
     out_dir = os.path.dirname(out_path) or "."
     base = os.path.basename(out_path) or "afrispeech_selection"
 

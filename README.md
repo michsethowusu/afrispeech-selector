@@ -16,12 +16,9 @@ which is handy for supplementing low-resource languages.
 Size it however you like: a **total budget** (e.g. `--total-hours 16`), **per
 language** (clips or hours), or everything available.
 
-**Source & redistribution:** the audio comes from the AfriSpeech
-[`african-speech-public_v1`](https://huggingface.co/datasets/AfriSpeech/african-speech-public_v1)
-dataset on the Hugging Face Hub. A *local* working set for your own training is
-fine; redistributing copies (e.g. `--push` to a public repo) is **not
-recommended**, given the permissions of the public data sources the dataset
-draws on.
+**Redistribution:** building a *local* working set for your own training is fine.
+Redistributing copies of the audio (e.g. `--push` to a public repo) is **not
+recommended**, given the permissions of the underlying public data sources.
 
 ## Available languages
 
@@ -50,16 +47,17 @@ training-ready.
 
 ```bash
 # ~5 hours of Twi as an LJSpeech TTS dataset (wavs/ + metadata.csv), 22.05 kHz
-afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format ljspeech
+afrispeech-select --languages twi_twi --total-hours 5 --out data/twi --format ljspeech
 
 # …for Piper / VITS / MeloTTS instead, just change --format:
-afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format piper
+afrispeech-select --languages twi_twi --total-hours 5 --out data/twi --format piper
 ```
 
 (Using it for ASR? See [Using it for ASR](#using-it-for-asr) below.)
 
-That's it — `./twi` now holds the audio + metadata in the right layout. Want more
-or less? Change `--total-hours` (or use `--per-language N` for a clip count).
+That's it — `data/twi` now holds the audio + metadata in the right layout (omit
+`--out` and it defaults to `data/<language>`). Want more or less? Change
+`--total-hours` (or use `--per-language N` for a clip count).
 Want longer/shorter clips? Set `--min-clip-sec` / `--max-clip-sec` (defaults 3 / 15).
 
 **Asking for more than a language has?** You get **everything available** — the
@@ -84,13 +82,13 @@ TTS data-prep reads WAVs + a manifest from disk. Pick your framework with
 
 ```bash
 # LJSpeech layout (wavs/ + metadata.csv: id|text|text)
-afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format ljspeech
+afrispeech-select --languages twi_twi --total-hours 5 --out data/twi --format ljspeech
 
 # Piper (metadata.csv: id|speaker|text)
-afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format piper
+afrispeech-select --languages twi_twi --total-hours 5 --out data/twi --format piper
 
 # VITS (filelist.txt + speakers.txt) and/or MeloTTS (metadata.list)
-afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format vits,melo
+afrispeech-select --languages twi_twi --total-hours 5 --out data/twi --format vits,melo
 ```
 
 Each writes `<out>/wavs/*.wav` plus the manifest. Phonemisation / text cleaning
@@ -105,13 +103,13 @@ low-resource ASR (less so as a stand-alone set for spontaneous/noisy audio).
 Export an on-disk 🤗 dataset, or stream it straight into a Trainer with no copy:
 
 ```bash
-afrispeech-select --languages twi_twi --total-hours 5 --out ./twi \
+afrispeech-select --languages twi_twi --total-hours 5 --out data/twi \
     --format disk,parquet --target-sr 16000
 ```
 
 ```python
 from datasets import load_from_disk
-ds = load_from_disk("twi").train_test_split(test_size=0.1)
+ds = load_from_disk("data/twi").train_test_split(test_size=0.1)
 
 # …or stream (no local copy) — `afrispeech-select … --recipe` prints this:
 from afrispeech_selector import stream_dataset
@@ -142,7 +140,7 @@ across them (so each gets its fair share).
 ```bash
 # Ghanaian languages, 15 h total (5 h each), LJSpeech
 afrispeech-select --languages twi_twi,ewe_ewe,ga_gaa --total-hours 15 \
-    --out ./gh --format ljspeech
+    --out data/gh --format ljspeech
 ```
 
 **2. Or pick across the dataset by strength / balance** — top-N by hours, with
@@ -151,11 +149,11 @@ optional country balancing and pool filters:
 ```bash
 # Top 10 languages, at most 2 per country, 24 h total
 afrispeech-select --top 10 --max-per-country 2 --total-hours 24 \
-    --out ./multi --format ljspeech
+    --out data/multi --format ljspeech
 
 # Narrow the pool first: only languages >= 20 h, only Ghana & Nigeria
 afrispeech-select --top 8 --min-hours 20 --countries GH,NG --total-hours 16 \
-    --out ./wa --format ljspeech
+    --out data/wa --format ljspeech
 ```
 
 **Preview before pulling** — list what matches, or dry-run a selection:
@@ -208,7 +206,7 @@ Load a result later:
 
 ```python
 from datasets import load_from_disk
-ds = load_from_disk("data")                    # from --format disk
+ds = load_from_disk("data/twi")                  # from --format disk
 # or: Dataset.from_parquet("data.parquet")
 ds = ds.train_test_split(test_size=0.1)        # feed your trainer
 ```

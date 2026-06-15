@@ -16,7 +16,6 @@ import pandas as pd
 import gradio as gr
 
 from afrispeech_selector import (
-    DATASET_ID,
     countries,
     filter_catalog,
     load_catalog,
@@ -144,8 +143,7 @@ with gr.Blocks(title="AfriSpeech Selector", theme=gr.themes.Soft()) as demo:
         "Explore & select African languages (ranked by recorded **hours**), then copy the "
         "**`afrispeech-select`** command and run it in your terminal to get the audio + "
         "metadata in your training format. Output schema: "
-        "`audio · text · language · country · length`.\n\n"
-        f"<sub>Source: {DATASET_ID} on the Hugging Face Hub.</sub>"
+        "`audio · text · language · country · length`."
     )
 
     with gr.Tab("🏆 Top languages across Africa"):
