@@ -8,14 +8,10 @@ hand-picked set, sized the way you want — and get the **audio + metadata in th
 format your training pipeline expects**. You take it from there; the tool doesn't
 do any text normalisation or cleaning (that's your framework's job).
 
-**Built for TTS first.** This is clean, **read speech with aligned transcripts** —
-exactly what text-to-speech training wants. Export WAVs + a manifest in the layout
-your framework reads: **LJSpeech, Piper, VITS, or MeloTTS**.
-
-> Using it for **ASR** too? You can (`load_from_disk` / Parquet, or stream in with
-> `stream_dataset(...)`) — but note it's relatively clean, single-domain read
-> speech, so it's best as a *supplement* to more varied/spontaneous audio rather
-> than a stand-alone ASR set.
+It's clean read speech with aligned transcripts, so the natural fit is **TTS** —
+export WAVs + a manifest for **LJSpeech, Piper, VITS, or MeloTTS**. It works for
+**ASR** too (`load_from_disk` / Parquet, or stream with `stream_dataset(...)`),
+which is handy for supplementing low-resource languages.
 
 Size it however you like: a **total budget** (e.g. `--total-hours 16`), **per
 language** (clips or hours), or everything available.
@@ -60,7 +56,7 @@ afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format ljspe
 afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format piper
 ```
 
-(ASR is possible too — see [Using it for ASR](#using-it-for-asr-on-the-side) below.)
+(Using it for ASR? See [Using it for ASR](#using-it-for-asr) below.)
 
 That's it — `./twi` now holds the audio + metadata in the right layout. Want more
 or less? Change `--total-hours` (or use `--per-language N` for a clip count).
@@ -102,12 +98,10 @@ is left to the framework's own preprocessor.
 
 No install? `python3 -m afrispeech_selector …` works the same from the repo.
 
-## Using it for ASR (on the side)
+## Using it for ASR
 
-> **Caveat:** this is clean, single-domain read speech. It can help ASR — e.g.
-> bootstrapping or augmenting low-resource languages — but on its own it won't
-> reflect spontaneous or noisy real-world audio. Treat it as a *supplement*.
-
+Being clean read speech with transcripts, it's well suited to **supplementing**
+low-resource ASR (less so as a stand-alone set for spontaneous/noisy audio).
 Export an on-disk 🤗 dataset, or stream it straight into a Trainer with no copy:
 
 ```bash
