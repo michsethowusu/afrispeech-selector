@@ -196,6 +196,27 @@ pip install -e .            # gives you the `afrispeech-select` command
 
 (Use `python3` — the code uses non-ASCII text and won't run under Python 2.)
 
+## Quickstart — one language, ready to train
+
+Most people just want one language. Pick its name (`afrispeech-select --list-langs`,
+or the table below) and run one command. Clips are filtered to a **3–15 s** window
+by default, so the result is training-ready.
+
+```bash
+# ~5 hours of Twi as an LJSpeech TTS dataset (wavs/ + metadata.csv), 22.05 kHz
+afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format ljspeech
+
+# …for Piper / VITS / MeloTTS instead, just change --format:
+afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format piper
+
+# …for ASR (Hugging Face datasets on disk, 16 kHz):
+afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format disk --target-sr 16000
+```
+
+That's it — `./twi` now holds the audio + metadata in the right layout. Want more
+or less? Change `--total-hours` (or use `--per-language N` for a clip count).
+Want longer/shorter clips? Set `--min-clip-sec` / `--max-clip-sec` (defaults 3 / 15).
+
 ## Export for TTS frameworks (WAVs + manifest)
 
 TTS data-prep reads WAVs + a manifest from disk. Export the selection in the
@@ -270,7 +291,7 @@ No install? `python3 -m afrispeech_selector …` works the same from the repo.
 | `--total-hours H` | total audio across the selection, split evenly per language |
 | `--per-language N` | max clips per language |
 | `--max-hours-per-lang H` | duration budget per language (decimals OK, e.g. `0.5`) |
-| `--min-clip-sec / --max-clip-sec` | per-sample length window (out-of-range clips skipped while picking) |
+| `--min-clip-sec / --max-clip-sec` | per-sample length window, **default 3 / 15 s** (out-of-range clips skipped; `--min-clip-sec 0 --max-clip-sec 9999` to disable) |
 | `--split train\|val\|test\|all` | which split to draw from |
 | `--target-sr HZ` | resample audio (e.g. `16000` for ASR, `22050` for TTS) |
 | `--schema asr\|whisper\|common_voice` | reshape columns for a training framework |

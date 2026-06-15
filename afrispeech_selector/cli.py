@@ -77,8 +77,10 @@ def build_parser() -> argparse.ArgumentParser:
                      help="total audio hours across the whole selection (split evenly per language)")
     siz.add_argument("--per-language", type=int, help="max clips per language")
     siz.add_argument("--max-hours-per-lang", type=float, help="duration budget per language, hours (e.g. 0.5)")
-    siz.add_argument("--min-clip-sec", type=float, help="drop clips shorter than this many seconds")
-    siz.add_argument("--max-clip-sec", type=float, help="drop clips longer than this many seconds")
+    siz.add_argument("--min-clip-sec", type=float, default=3.0,
+                     help="drop clips shorter than this (default: 3; use 0 to disable)")
+    siz.add_argument("--max-clip-sec", type=float, default=15.0,
+                     help="drop clips longer than this (default: 15; use e.g. 9999 to disable)")
     siz.add_argument("--seed", type=int, default=42)
 
     fmt = p.add_argument_group("training format")

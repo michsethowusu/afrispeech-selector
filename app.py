@@ -172,8 +172,8 @@ with gr.Blocks(title="AfriSpeech Selector", theme=gr.themes.Soft()) as demo:
     with gr.Row():
         per_lang = gr.Number(label="Max samples per language (blank = all)", precision=0)
         max_hr_lang = gr.Number(label="Max hours per language (blank = none, e.g. 0.5)", minimum=0)
-        min_len = gr.Number(label="Min sample length (sec)", minimum=0)
-        max_len = gr.Number(label="Max sample length (sec)", minimum=0)
+        min_len = gr.Number(value=3, label="Min sample length (sec)", minimum=0)
+        max_len = gr.Number(value=15, label="Max sample length (sec)", minimum=0)
     gr.Markdown(
         "_Sample-length window is a precondition: out-of-range clips are skipped while "
         "picking, so the sample/hour target is filled from in-range clips only._"
