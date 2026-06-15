@@ -96,7 +96,8 @@ def build_parser() -> argparse.ArgumentParser:
     misc.add_argument("--allow-full", action="store_true",
                       help="permit an uncapped pull (downloads whole shards, ~65 GB)")
     misc.add_argument("--dry-run", action="store_true", help="print the selection plan and exit")
-    misc.add_argument("--list-langs", action="store_true", help="print the full catalog and exit")
+    misc.add_argument("--list-langs", action="store_true",
+                      help="list available languages (honours the selection filters) and exit")
     return p
 
 
@@ -104,9 +105,24 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     if args.list_langs:
-        for e in sorted(load_catalog(), key=lambda x: (-x.hours)):
-            print(f"{e.subset:<28} {e.language:<24} {e.country} "
-                  f"{COUNTRY_NAMES.get(e.country, ''):<22} {e.hours:>6.1f}h  {e.clips} clips")
+        # Apply the same pool filters, so this doubles as "what matches my criteria".
+        pool = filter_catalog(
+            min_hours=args.min_hours, max_hours=args.max_hours, min_clips=args.min_clips,
+            countries=args.countries.split(",") if args.countries else None,
+            split=args.split, require_split=False,
+        )
+        if args.top:  # also honour a top-N selection if given
+            pool = select_top(pool, args.top, proportional=args.proportional,
+                              max_per_country=args.max_per_country)
+        pool = sorted(pool, key=lambda x: -x.hours)
+        hdr = f"{'subset (--languages)':<28} {'language':<24} {'cc':<3} {'country':<22} {'hours':>7} {'clips':>7}"
+        print(hdr)
+        print("-" * len(hdr))
+        for e in pool:
+            print(f"{e.subset:<28} {e.language:<24} {e.country:<3} "
+                  f"{COUNTRY_NAMES.get(e.country, ''):<22} {e.hours:>6.1f}h {e.clips:>7}")
+        total_h = round(sum(e.hours for e in pool), 1)
+        print(f"\n{len(pool)} languages, {total_h} h total.", file=sys.stderr)
         return 0
 
     # ---- selection -------------------------------------------------------- #
