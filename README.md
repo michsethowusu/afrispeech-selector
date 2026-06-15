@@ -22,18 +22,9 @@ responsibility — check the source license first.
 
 ## Available languages
 
-**142 languages · 2267.9 hours · 35 countries.** Hours is the strength
-signal used for ranking. The `--languages` value is the name to pass for hand-picking
-(e.g. `--languages twi_twi,hausa_hau`).
-
-List them from the CLI too — and filter by your criteria before generating:
-
-```bash
-afrispeech-select --list-langs                          # everything, by hours
-afrispeech-select --list-langs --min-hours 20           # only >= 20h
-afrispeech-select --list-langs --countries GH,NG        # only these countries
-afrispeech-select --list-langs --top 10 --max-per-country 2   # what a selection would pick
-```
+**142 languages · 2267.9 hours · 35 countries.** Hours is the strength signal
+used for ranking. The `--languages` value is the name you pass to pick a language
+(e.g. `--languages twi_twi`). List them anytime with `afrispeech-select --list-langs`.
 
 <details>
 <summary>Full language table (142, sorted by hours)</summary>
@@ -217,68 +208,88 @@ That's it — `./twi` now holds the audio + metadata in the right layout. Want m
 or less? Change `--total-hours` (or use `--per-language N` for a clip count).
 Want longer/shorter clips? Set `--min-clip-sec` / `--max-clip-sec` (defaults 3 / 15).
 
-## Export for TTS frameworks (WAVs + manifest)
+## Export one language for a TTS framework (WAVs + manifest)
 
-TTS data-prep reads WAVs + a manifest from disk. Export the selection in the
-layout your framework expects (`--format`): `ljspeech` (generic / Coqui),
-`piper`, `vits`, or `melo`. Audio is written as 16-bit mono WAV at `--target-sr`
-(default 22050). Transcripts are written **verbatim** — no normalisation.
+TTS data-prep reads WAVs + a manifest from disk. Pick your framework with
+`--format`: `ljspeech` (generic / Coqui), `piper`, `vits`, or `melo`. Audio is
+16-bit mono WAV at `--target-sr` (default 22050); transcripts are written
+**verbatim** — no normalisation.
 
 ```bash
-# 16 hours total, LJSpeech layout (wavs/ + metadata.csv: id|text|text)
-afrispeech-select --top 10 --max-per-country 2 --total-hours 16 \
-    --out ./tts_data --format ljspeech --target-sr 22050
+# LJSpeech layout (wavs/ + metadata.csv: id|text|text)
+afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format ljspeech
 
-# Piper (metadata.csv: id|speaker|text) — speaker = language, multilingual-ready
-afrispeech-select --languages twi_twi,ewe_ewe --per-language 500 \
-    --out ./piper_data --format piper
+# Piper (metadata.csv: id|speaker|text)
+afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format piper
 
-# VITS (filelist.txt: wavs/<id>.wav|<sid>|text + speakers.txt)
-# MeloTTS (metadata.list: wavs/<id>.wav|speaker|LANG|text)
-afrispeech-select --top 8 --total-hours 24 --out ./melo_data --format vits,melo
+# VITS (filelist.txt + speakers.txt) and/or MeloTTS (metadata.list)
+afrispeech-select --languages twi_twi --total-hours 5 --out ./twi --format vits,melo
 ```
 
-Each writes `<out>/wavs/*.wav` plus the manifest. Speaker = language label and
-language code = ISO 639-3 — natural for multilingual TTS. Phonemisation / text
-cleaning is left to the framework's own preprocessor.
+Each writes `<out>/wavs/*.wav` plus the manifest. Phonemisation / text cleaning
+is left to the framework's own preprocessor.
 
-## Export for ASR / 🤗 datasets
+## Export one language for ASR / 🤗 datasets
 
 ```bash
 # On-disk dataset (load_from_disk) + a parquet file, resampled to 16 kHz
-afrispeech-select --top 10 --total-hours 16 --out ./data \
+afrispeech-select --languages twi_twi --total-hours 5 --out ./twi \
     --format disk,parquet --target-sr 16000
 ```
 
 ```python
 from datasets import load_from_disk
-ds = load_from_disk("data").train_test_split(test_size=0.1)
+ds = load_from_disk("twi").train_test_split(test_size=0.1)
 ```
 
 Or stream it in with **no local copy** (lazy `IterableDataset`):
 
 ```python
-from afrispeech_selector import filter_catalog, select_top, stream_dataset
-langs = select_top(filter_catalog(min_hours=10), 10, max_per_country=2)
-ds = stream_dataset(langs, split="train", per_language=200, target_sampling_rate=16000)
+from afrispeech_selector import stream_dataset
+ds = stream_dataset(["twi_twi"], split="train", max_seconds=5 * 3600,
+                    target_sampling_rate=16000)   # min/max clip default to 3/15s
 for batch in ds.iter(batch_size=8):
     ...
 # `afrispeech-select … --recipe` prints this snippet for any selection.
 ```
 
-## Other CLI examples
-
-```bash
-# Filter the menu before committing
-afrispeech-select --list-langs --min-hours 20 --countries GH,NG
-
-# An HF working copy on disk (load_from_disk / parquet)
-afrispeech-select --top 10 --per-language 200 --out ./data --format disk,parquet
-```
-
 No install? `python3 -m afrispeech_selector …` works the same from the repo.
 
-### Key options
+## Selecting multiple languages
+
+Everything above works for several languages too — the format/output flags are
+identical, you just choose *which* languages. `--total-hours` is split evenly
+across them (so each gets its fair share).
+
+**1. Name the languages you want:**
+
+```bash
+# Ghanaian languages, 15 h total (5 h each), LJSpeech
+afrispeech-select --languages twi_twi,ewe_ewe,ga_gaa --total-hours 15 \
+    --out ./gh --format ljspeech
+```
+
+**2. Or pick across the dataset by strength / balance** — top-N by hours, with
+optional country balancing and pool filters:
+
+```bash
+# Top 10 languages, at most 2 per country, 24 h total
+afrispeech-select --top 10 --max-per-country 2 --total-hours 24 \
+    --out ./multi --format ljspeech
+
+# Narrow the pool first: only languages >= 20 h, only Ghana & Nigeria
+afrispeech-select --top 8 --min-hours 20 --countries GH,NG --total-hours 16 \
+    --out ./wa --format ljspeech
+```
+
+**Preview before pulling** — list what matches, or dry-run a selection:
+
+```bash
+afrispeech-select --list-langs --min-hours 20 --countries GH,NG   # what matches
+afrispeech-select --top 10 --max-per-country 2 --dry-run          # what it would pick
+```
+
+## All options
 
 | flag | meaning |
 |------|---------|
@@ -305,7 +316,7 @@ Capped pulls **stream** from the Hub and only transfer the samples you ask for.
 An uncapped "full build" downloads whole shards (the dataset is ~65 GB) and must
 be enabled with `--allow-full`.
 
-### Output schema
+## Output schema
 
 | column | meaning |
 |--------|---------|
@@ -337,18 +348,26 @@ python app.py              # opens http://127.0.0.1:7860
 
 ## Use as a library
 
+One language:
+
 ```python
-from afrispeech_selector import filter_catalog, select_top, stream_dataset, build_dataset, export_tts
+from afrispeech_selector import build_dataset, export_tts, stream_dataset
 
-pool  = filter_catalog(min_hours=10, split="train")
-langs = select_top(pool, 10, proportional=True, max_per_country=2)
+# Stream into training — no copy
+ds = stream_dataset(["twi_twi"], split="train", max_seconds=5 * 3600, target_sampling_rate=16000)
 
-# (a) Stream into training — no copy (recommended)
+# …or materialise and export for a TTS framework
+copy = build_dataset(["twi_twi"], split="train", max_seconds=5 * 3600, streaming=True)
+export_tts(copy, out_dir="./twi", fmt="ljspeech", sampling_rate=22050)
+```
+
+Several languages — name them, or select across the dataset:
+
+```python
+from afrispeech_selector import filter_catalog, select_top, stream_dataset
+
+langs = select_top(filter_catalog(min_hours=20), 10, proportional=True, max_per_country=2)
 ds = stream_dataset(langs, split="train", per_language=200, target_sampling_rate=16000)
-
-# (b) Materialise a local working set, then export for a TTS framework
-copy = build_dataset(langs, split="train", per_language=200, streaming=True)
-export_tts(copy, out_dir="./tts_data", fmt="ljspeech", sampling_rate=22050)
 ```
 
 ## Tests
