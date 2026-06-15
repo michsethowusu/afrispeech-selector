@@ -29,3 +29,6 @@ afrispeech-select = "afrispeech_selector.cli:main"
 
 [tool.setuptools]
 packages = ["afrispeech_selector"]
+
+[tool.setuptools.package-data]
+afrispeech_selector = ["data/*.tsv"]

@@ -30,7 +30,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", default=DATASET_ID)
     ap.add_argument("--token", default=None)
-    ap.add_argument("--out", default=str(ROOT / "data" / "catalog.tsv"))
+    ap.add_argument("--out", default=str(ROOT / "afrispeech_selector" / "data" / "catalog.tsv"))
     args = ap.parse_args()
 
     from datasets import get_dataset_config_names, get_dataset_split_names, load_dataset

@@ -256,7 +256,8 @@ pytest tests/        # selection, builder, and CLI tests (mostly offline)
 
 ## Keeping the catalog current
 
-`data/catalog.tsv` is the static strength table (fast, offline). Regenerate it
+`afrispeech_selector/data/catalog.tsv` is the static strength table (fast,
+offline; bundled in the package). Regenerate it
 when the source dataset changes:
 
 ```bash
@@ -273,7 +274,7 @@ afrispeech_selector/
   builder.py    pull subsets → standard schema; stream_dataset (no copy) + apply_schema
   export.py     HF (zip/parquet/manifest/push) + TTS (ljspeech/piper/vits/melo)
 app.py          optional selection UI (emits the CLI command)
-data/catalog.tsv  strength table (hours, clips, splits per subset)
+  data/catalog.tsv  strength table (hours, clips, splits) — bundled in the package
 scripts/        refresh_catalog.py, clean_source_dataset.py
 tests/          selection, builder, CLI tests
 ```
