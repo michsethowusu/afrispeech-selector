@@ -62,11 +62,18 @@ That's it — `./twi` now holds the audio + metadata in the right layout. Want m
 or less? Change `--total-hours` (or use `--per-language N` for a clip count).
 Want longer/shorter clips? Set `--min-clip-sec` / `--max-clip-sec` (defaults 3 / 15).
 
-**Asking for more than a language has?** You just get **everything available** —
-the hour/clip target is an upper bound; the tool never pads or repeats. (Note the
-3–15 s filter trims a language's usable hours below its catalog total, so e.g. a
-50 h language yields somewhat less.) `--dry-run` shows the achievable amount, and
-the CLI prints a note when your request can't be met.
+**Asking for more than a language has?** You get **everything available** — the
+hour/clip target is an upper bound; the tool never pads or repeats. When your
+request can't be met, the CLI tells you how much actually exists and **asks you to
+confirm** before downloading, e.g.:
+
+```text
+Only ~2.37 h is available vs ~20 h requested. Proceed with all available? [y/N]
+```
+
+Pass `-y`/`--yes` to skip the prompt (for scripts/notebooks), or `--dry-run` to
+see the achievable amount up front. (The 3–15 s filter trims a language's usable
+hours below its catalog total, so e.g. a 50 h language yields somewhat less.)
 
 ## Export one language for a TTS framework (WAVs + manifest)
 
@@ -171,6 +178,7 @@ afrispeech-select --top 10 --max-per-country 2 --dry-run          # what it woul
 | `--format …` | HF: `disk,zip,parquet,csv` · TTS: `ljspeech,piper,vits,melo` |
 | `--push REPO_ID [--public] [--token …]` | push to an HF dataset repo (creates a copy) |
 | `--dry-run` / `--list-langs` | preview the plan / list matching languages |
+| `-y` / `--yes` | skip the confirmation prompt when the request exceeds what's available |
 
 Capped pulls **stream** from the Hub and only transfer the samples you ask for.
 An uncapped "full build" downloads whole shards (the dataset is ~65 GB) and must

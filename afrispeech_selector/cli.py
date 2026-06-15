@@ -106,6 +106,8 @@ def build_parser() -> argparse.ArgumentParser:
     misc.add_argument("--no-streaming", dest="streaming", action="store_false")
     misc.add_argument("--allow-full", action="store_true",
                       help="permit an uncapped pull (downloads whole shards, ~65 GB)")
+    misc.add_argument("-y", "--yes", action="store_true",
+                      help="skip the confirmation prompt when the requested hours exceed what's available")
     misc.add_argument("--recipe", action="store_true",
                       help="print a Python snippet that streams this selection into training (no copy) and exit")
     misc.add_argument("--dry-run", action="store_true", help="print the selection plan and exit")
@@ -230,6 +232,17 @@ def main(argv: list[str] | None = None) -> int:
     if cap is None and secs is None and not args.allow_full:
         sys.exit("No per-language limit set — that pulls whole shards (~65 GB). "
                  "Set --per-language or --max-hours-per-lang, or pass --allow-full.")
+
+    # ---- confirm if we can't meet the requested hours --------------------- #
+    if requested_h and total_hours < requested_h * 0.98 and not args.yes:
+        if sys.stdin.isatty():
+            resp = input(f"Only ~{total_hours} h is available vs ~{requested_h:g} h requested. "
+                         f"Proceed with all available? [y/N] ").strip().lower()
+            if resp not in ("y", "yes"):
+                sys.exit("Aborted — nothing downloaded.")
+        else:
+            print("(non-interactive: proceeding with all available; pass -y to silence)",
+                  file=sys.stderr)
 
     use_streaming = args.streaming if args.streaming is not None else (cap is not None or secs is not None)
 

@@ -44,6 +44,19 @@ def test_total_hours_splits_evenly(capsys):
     assert "÷ 8 languages = 3.00 h each" in err  # 24h / 8 langs
 
 
+def test_over_request_shows_note(capsys):
+    # Wolof has ~2.5h; asking for 20h should warn (dry-run, so no prompt/build).
+    rc = cli.main(["--languages", "wolof_wol", "--total-hours", "20", "--dry-run"])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert "available" in err and "20" in err
+
+
+def test_yes_flag_parses():
+    assert cli.build_parser().parse_args(["-y"]).yes is True
+    assert cli.build_parser().parse_args([]).yes is False
+
+
 def test_uncapped_pull_blocked():
     try:
         cli.main(["--top", "3"])
