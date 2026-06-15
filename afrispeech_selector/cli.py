@@ -208,6 +208,17 @@ def main(argv: list[str] | None = None) -> int:
     print(_fmt_plan(plan))
     print("", file=sys.stderr)
 
+    # If you asked for more than exists, you get everything available — say so.
+    requested_h = args.total_hours or (
+        args.max_hours_per_lang * len(chosen) if args.max_hours_per_lang else None)
+    if requested_h and total_hours < requested_h * 0.98:
+        short = [p["language"] for p in plan
+                 if secs and p.get("planned_seconds", 0) < secs * 0.98]
+        print(f"Note: only ~{total_hours} h is available for this selection (you asked for "
+              f"~{requested_h:g} h) — you'll get all available clips"
+              + (f"; limited by: {', '.join(short[:6])}" + ("…" if len(short) > 6 else "")
+                 if short else "") + ".", file=sys.stderr)
+
     if args.dry_run:
         return 0
 
