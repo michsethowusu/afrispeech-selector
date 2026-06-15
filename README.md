@@ -12,9 +12,11 @@ resumable, scriptable, and pipes straight into a training script. An optional
 local browser UI helps you *explore and build the command* — but the CLI does
 the work.
 
-## ▶️ Run in the cloud (free T4 — no local setup)
+## ▶️ Run in the cloud (no local setup)
 
-Open the example notebook and generate data on a free Colab/Kaggle GPU runtime:
+Open the example notebook and generate data on a free Colab/Kaggle runtime — the
+**default CPU runtime is enough** (building a dataset is download/IO, not compute;
+no GPU needed):
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/AfriSpeech/afrispeech-selector/blob/main/notebooks/afrispeech_selector.ipynb)
 [![Open in Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://kaggle.com/kernels/welcome?src=https://github.com/AfriSpeech/afrispeech-selector/blob/main/notebooks/afrispeech_selector.ipynb)
