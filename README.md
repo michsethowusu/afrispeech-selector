@@ -1,11 +1,10 @@
 # AfriSpeech Selector
 
-Select African languages from
-[`AfriSpeech/african-speech-public_v1`](https://huggingface.co/datasets/AfriSpeech/african-speech-public_v1)
-by recorded **hours** (strength) — a country-balanced top-N or a hand-picked set,
-sized the way you want — and get the **audio + metadata in the format your
-training pipeline expects**. You take it from there; the tool doesn't do any text
-normalisation or cleaning (that's your framework's job).
+Select African languages by recorded **hours** (strength) — a country-balanced
+top-N or a hand-picked set, sized the way you want — and get the **audio +
+metadata in the format your training pipeline expects**. You take it from there;
+the tool doesn't do any text normalisation or cleaning (that's your framework's
+job).
 
 - **TTS data-prep** — export WAVs + a manifest in the layout your framework reads:
   **LJSpeech, Piper, VITS, or MeloTTS**.
@@ -15,9 +14,11 @@ normalisation or cleaning (that's your framework's job).
 Size it however you like: a **total budget** (e.g. `--total-hours 16`), **per
 language** (clips or hours), or everything available.
 
-> **License:** the audio belongs to the source dataset. A *local* working set for
-> your own training is fine; redistributing copies (e.g. `--push` to a public
-> repo) is your responsibility — check the source license first.
+**Source & license:** the audio comes from the AfriSpeech
+[`african-speech-public_v1`](https://huggingface.co/datasets/AfriSpeech/african-speech-public_v1)
+dataset on the Hugging Face Hub. A *local* working set for your own training is
+fine; redistributing copies (e.g. `--push` to a public repo) is your
+responsibility — check the source license first.
 
 ## Available languages
 

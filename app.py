@@ -140,11 +140,12 @@ def preview_pick(picked, split, per_language, max_hours_per_lang, min_len, max_l
 
 with gr.Blocks(title="AfriSpeech Selector", theme=gr.themes.Soft()) as demo:
     gr.Markdown(
-        f"# 🌍 AfriSpeech Selector\n"
-        f"Explore & select African languages from **`{DATASET_ID}`** (ranked by recorded "
-        f"**hours**), then copy the **`afrispeech-select`** command and run it in your "
-        f"terminal to download. The terminal does the heavy pull — reliable, resumable, "
-        f"and pipeable into training. Output schema: `audio · text · language · country · length`."
+        "# AfriSpeech Selector\n"
+        "Explore & select African languages (ranked by recorded **hours**), then copy the "
+        "**`afrispeech-select`** command and run it in your terminal to get the audio + "
+        "metadata in your training format. Output schema: "
+        "`audio · text · language · country · length`.\n\n"
+        f"<sub>Source: {DATASET_ID} on the Hugging Face Hub.</sub>"
     )
 
     with gr.Tab("🏆 Top languages across Africa"):
