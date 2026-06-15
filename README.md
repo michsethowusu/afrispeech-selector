@@ -13,9 +13,6 @@ export WAVs + a manifest for **LJSpeech, Piper, VITS, or MeloTTS**. It works for
 **ASR** too (`load_from_disk` / Parquet, or stream with `stream_dataset(...)`),
 which is handy for supplementing low-resource languages.
 
-Size it however you like: a **total budget** (e.g. `--total-hours 16`), **per
-language** (clips or hours), or everything available.
-
 **Redistribution:** building a *local* working set for your own training is fine.
 Redistributing copies of the audio (e.g. `--push` to a public repo) is **not
 recommended**, given the permissions of the underlying public data sources.
